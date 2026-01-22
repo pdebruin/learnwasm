@@ -1,10 +1,14 @@
 using learnwasm.Components;
+using learnwasm.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add HttpClient for MCP service
+builder.Services.AddHttpClient<McpService>();
 
 var app = builder.Build();
 
