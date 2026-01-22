@@ -28,6 +28,7 @@ h1 {
     color: #333;
     margin-bottom: 10px;
     font-size: 2.5em;
+    outline: none;
 }
 
 .subtitle {
