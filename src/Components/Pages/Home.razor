@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using learnwasm.Services
 @inject McpService McpService
-@rendermode InteractiveServer
 
 <PageTitle>Learn MCP Client</PageTitle>
 
@@ -87,16 +86,16 @@
             // Note for user when no results
             if (resultCount == 0)
             {
-                errorMessage = "No results were returned from the MCP server. This could be due to network restrictions, " +
-                              "CORS limitations, or connectivity issues. In a production environment with proper network access, " +
-                              "the server-side HttpClient would successfully call the MCP API at https://learn.microsoft.com/api/mcp.";
+                errorMessage = "No results were returned from the MCP server. This could be due to CORS restrictions, " +
+                              "network limitations, or connectivity issues. Blazor WebAssembly runs in the browser and may " +
+                              "encounter CORS restrictions when calling the MCP API at https://learn.microsoft.com/api/mcp.";
             }
         }
         catch (Exception ex)
         {
             errorMessage = "Error calling MCP server: " + ex.Message + ". " +
-                          "Note: Blazor Server makes the HTTP call server-side, so CORS is not an issue. " +
-                          "This error is likely due to network connectivity restrictions in the current environment.";
+                          "Note: Blazor WebAssembly makes HTTP calls from the browser, which may encounter CORS restrictions. " +
+                          "This error is likely due to CORS policy or network connectivity issues.";
             resultCount = 0;
         }
         finally
