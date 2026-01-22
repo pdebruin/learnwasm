@@ -12,4 +12,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <Target Name="FixWebConfig" AfterTargets="Publish" Condition="Exists('$(PublishDir)web.config')">
+    <PropertyGroup>
+      <WebConfigPath>$(PublishDir)web.config</WebConfigPath>
+    </PropertyGroup>
+    <XmlPoke XmlInputPath="$(WebConfigPath)"
+             Query="/configuration/system.webServer/rewrite/rules/rule[@name='SPA fallback routing']/action/@url"
+             Value="wwwroot/index.html" />
+  </Target>
+
 </Project>
