@@ -39,7 +39,7 @@
         <h3>Results</h3>
         <p class="text-muted">Found @resultCount result(s)</p>
 
-        @if (resultCount > 0)
+        @if (resultCount > 0 && searchResults?.Results?.Count > 0)
         {
             <div class="card">
                 <div class="card-body">
