@@ -1,7 +1,109 @@
 ﻿@page "/"
+@using learnwasm.Services
+@inject McpService McpService
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Learn MCP Client</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Microsoft Learn MCP Client</h1>
 
-Welcome to your new app.
+<p>Search Microsoft Learn documentation using the MCP (Model Context Protocol) server.</p>
+
+<div class="mb-3">
+    <label for="questionInput" class="form-label">Ask a question:</label>
+    <input type="text" class="form-control" id="questionInput" @bind="question" @bind:event="oninput" placeholder="e.g., How does Azure Functions scaling work?" />
+</div>
+
+<button class="btn btn-primary" @onclick="SearchDocs" disabled="@isLoading">
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <span>Searching...</span>
+    }
+    else
+    {
+        <span>Search</span>
+    }
+</button>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-warning mt-3" role="alert">
+        <strong>Note:</strong> @errorMessage
+    </div>
+}
+
+@if (searchResults != null)
+{
+    <div class="mt-4">
+        <h3>Results</h3>
+        <p class="text-muted">Found @resultCount result(s)</p>
+
+        @if (resultCount > 0)
+        {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="@searchResults.Results[0].Url" target="_blank">@searchResults.Results[0].Title</a>
+                    </h5>
+                    @if (!string.IsNullOrEmpty(searchResults.Results[0].Excerpt))
+                    {
+                        <p class="card-text">@searchResults.Results[0].Excerpt</p>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <p>No results found. Try a different question.</p>
+        }
+    </div>
+}
+
+@code {
+    private string question = "";
+    private McpSearchResponse? searchResults;
+    private int resultCount = 0;
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task SearchDocs()
+    {
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        searchResults = null;
+        StateHasChanged();
+
+        try
+        {
+            searchResults = await McpService.SearchDocsAsync(question);
+            resultCount = searchResults?.Results?.Count ?? 0;
+
+            // Note about CORS for user
+            if (resultCount == 0)
+            {
+                errorMessage = "Due to CORS restrictions, the browser cannot directly call the MCP server. " +
+                              "This is expected behavior. In a production environment, you would need to create a backend proxy endpoint " +
+                              "to handle the MCP server communication, or the MCP server would need to enable CORS for browser clients.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error calling MCP server: " + ex.Message + ". " +
+                          "This is likely due to CORS restrictions. The MCP server is designed to be called from server-side applications, " +
+                          "not directly from browsers. Consider creating a backend API proxy.";
+            resultCount = 0;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
+
