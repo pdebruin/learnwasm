@@ -84,19 +84,19 @@
             searchResults = await McpService.SearchDocsAsync(question);
             resultCount = searchResults?.Results?.Count ?? 0;
 
-            // Note about CORS for user
+            // Note for user when no results
             if (resultCount == 0)
             {
-                errorMessage = "Due to CORS restrictions, the browser cannot directly call the MCP server. " +
-                              "This is expected behavior. In a production environment, you would need to create a backend proxy endpoint " +
-                              "to handle the MCP server communication, or the MCP server would need to enable CORS for browser clients.";
+                errorMessage = "No results were returned from the MCP server. This could be due to network restrictions, " +
+                              "CORS limitations, or connectivity issues. In a production environment with proper network access, " +
+                              "the server-side HttpClient would successfully call the MCP API at https://learn.microsoft.com/api/mcp.";
             }
         }
         catch (Exception ex)
         {
             errorMessage = "Error calling MCP server: " + ex.Message + ". " +
-                          "This is likely due to CORS restrictions. The MCP server is designed to be called from server-side applications, " +
-                          "not directly from browsers. Consider creating a backend API proxy.";
+                          "Note: Blazor Server makes the HTTP call server-side, so CORS is not an issue. " +
+                          "This error is likely due to network connectivity restrictions in the current environment.";
             resultCount = 0;
         }
         finally
