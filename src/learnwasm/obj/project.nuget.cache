@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "8Yuz6lbJ6zY=",
+  "success": true,
+  "projectFilePath": "/workspaces/learnwasm/src/learnwasm/learnwasm.csproj",
+  "expectedPackageFiles": [
+    "/home/codespace/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.0/microsoft.aspnetcore.app.internal.assets.10.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
