@@ -3,15 +3,16 @@
 @inject IHttpClientFactory HttpClientFactory
 @rendermode InteractiveServer
 
-<PageTitle>Docs Search</PageTitle>
+<PageTitle>LearnWeb - Microsoft Learn Search</PageTitle>
 
-<h1>Microsoft Learn Docs Search</h1>
+<h1>LearnWeb</h1>
+<p class="subtitle">Search Microsoft Learn documentation</p>
 
-<div class="mb-3">
-    <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search Microsoft Learn..." 
+<div class="search-section">
+    <div class="search-container">
+        <input type="text" placeholder="Search Microsoft Learn..." 
                @bind="searchQuery" @bind:event="oninput" @onkeypress="HandleKeyPress" />
-        <button class="btn btn-primary" @onclick="SearchDocs" disabled="@isSearching">
+        <button @onclick="SearchDocs" disabled="@isSearching">
             @if (isSearching)
             {
                 <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -27,27 +28,27 @@
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert-danger">@errorMessage</div>
 }
 
 @if (hasSearched)
 {
-    <div class="mt-4">
-        <h4>Total Results: @totalResults</h4>
+    <div class="results">
+        <p class="result-count">Found @totalResults results</p>
         
         @if (firstResult != null)
         {
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5><a href="@firstResult.ContentUrl" target="_blank">@firstResult.Title</a></h5>
-                </div>
-                <div class="card-body">
-                    @if (!string.IsNullOrEmpty(firstResult.Content))
-                    {
-                        <div class="card-text" style="white-space: pre-wrap;">@firstResult.Content</div>
-                    }
-                </div>
+            <div class="result-item">
+                <a href="@firstResult.ContentUrl" target="_blank" class="result-title">@firstResult.Title</a>
+                @if (!string.IsNullOrEmpty(firstResult.Content))
+                {
+                    <div class="result-content">@firstResult.Content</div>
+                }
             </div>
+        }
+        else
+        {
+            <div class="no-results">No results found</div>
         }
     </div>
 }
