@@ -18,7 +18,7 @@
     </PropertyGroup>
     <XmlPoke XmlInputPath="$(WebConfigPath)"
              Query="/configuration/system.webServer/rewrite/rules/rule[@name='SPA fallback routing']/action/@url"
-             Value="wwwroot\index.html" />
+             Value="wwwroot/index.html" />
   </Target>
 
 </Project>
