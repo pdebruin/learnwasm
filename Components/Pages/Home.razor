@@ -1,7 +1,170 @@
 ﻿@page "/"
+@using System.Text.Json
+@inject IHttpClientFactory HttpClientFactory
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Docs Search</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Microsoft Learn Docs Search</h1>
 
-Welcome to your new app.
+<div class="mb-3">
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search Microsoft Learn..." 
+               @bind="searchQuery" @bind:event="oninput" @onkeypress="HandleKeyPress" />
+        <button class="btn btn-primary" @onclick="SearchDocs" disabled="@isSearching">
+            @if (isSearching)
+            {
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                <span> Searching...</span>
+            }
+            else
+            {
+                <span>Search</span>
+            }
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (hasSearched)
+{
+    <div class="mt-4">
+        <h4>Total Results: @totalResults</h4>
+        
+        @if (firstResult != null)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><a href="@firstResult.ContentUrl" target="_blank">@firstResult.Title</a></h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(firstResult.Content))
+                    {
+                        <div class="card-text" style="white-space: pre-wrap;">@firstResult.Content</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string searchQuery = "";
+    private bool isSearching = false;
+    private bool hasSearched = false;
+    private string? errorMessage;
+    private int totalResults = 0;
+    private SearchResultItem? firstResult;
+
+    private class SearchResultItem
+    {
+        public string? Title { get; set; }
+        public string? Content { get; set; }
+        public string? ContentUrl { get; set; }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchDocs();
+        }
+    }
+
+    private async Task SearchDocs()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+            return;
+
+        isSearching = true;
+        hasSearched = false;
+        errorMessage = null;
+        firstResult = null;
+        totalResults = 0;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json, text/event-stream");
+            
+            // MCP API request format
+            var request = new
+            {
+                jsonrpc = "2.0",
+                id = 1,
+                method = "tools/call",
+                @params = new
+                {
+                    name = "microsoft_docs_search",
+                    arguments = new
+                    {
+                        query = searchQuery
+                    }
+                }
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var httpContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("https://learn.microsoft.com/api/mcp", httpContent);
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // Parse SSE format - extract JSON from "data: {...}" line
+            var jsonData = content;
+            if (content.Contains("data: "))
+            {
+                var lines = content.Split('\n');
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("data: "))
+                    {
+                        jsonData = line.Substring(6);
+                        break;
+                    }
+                }
+            }
+
+            using var doc = JsonDocument.Parse(jsonData);
+            var root = doc.RootElement;
+
+            // Check for errors
+            if (root.TryGetProperty("error", out var error))
+            {
+                errorMessage = error.TryGetProperty("message", out var msg) ? msg.GetString() : "Unknown error";
+                return;
+            }
+
+            // Parse the result from structuredContent.results
+            if (root.TryGetProperty("result", out var result) &&
+                result.TryGetProperty("structuredContent", out var structuredContent) &&
+                structuredContent.TryGetProperty("results", out var resultsArray))
+            {
+                totalResults = resultsArray.GetArrayLength();
+
+                if (totalResults > 0)
+                {
+                    var first = resultsArray[0];
+                    firstResult = new SearchResultItem
+                    {
+                        Title = first.TryGetProperty("title", out var t) ? t.GetString() : null,
+                        Content = first.TryGetProperty("content", out var c) ? c.GetString() : null,
+                        ContentUrl = first.TryGetProperty("contentUrl", out var u) ? u.GetString() : null
+                    };
+                }
+            }
+
+            hasSearched = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error searching: {ex.Message}";
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+}
