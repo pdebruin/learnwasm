@@ -12,6 +12,7 @@ public class McpServerIntegrationTests
     private const string McpEndpoint = "https://learn.microsoft.com/api/mcp";
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task McpServer_AcceptsSampleQuery_AndReturnsResults()
     {
         using var client = new HttpClient();

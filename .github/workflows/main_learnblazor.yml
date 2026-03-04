@@ -27,7 +27,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Run tests
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test --configuration Release --no-build --filter "Category!=Integration"
 
       - name: dotnet publish
         run: dotnet publish learnwasm -c Release -o ./myapp
