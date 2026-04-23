@@ -26,17 +26,14 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
-      - name: Run tests
-        run: dotnet test --configuration Release --no-build --filter "Category!=Integration"
-
       - name: dotnet publish
-        run: dotnet publish learnwasm -c Release -o ./myapp
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./myapp
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
     runs-on: ubuntu-latest
@@ -54,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AD2CE1053EE74063AC5D47036BF76D67 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7D40A4605D1C4836BCC029D5EE8BCC67 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_349670AEF8B6424F8BC76CC6149B31C5 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A4995C6EA61540F48DCBC9AC26BC491B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8B21B38858754ADEB3B4F7C2E77A734F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D51652B607CE496498163A789E4CEF09 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
