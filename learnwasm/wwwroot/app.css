@@ -115,6 +115,7 @@ html, body {
     line-height: 1.2;
     margin-bottom: 0.75rem;
     letter-spacing: -0.02em;
+    outline: none;
 }
 
 .hero-content .subtitle {
